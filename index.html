@@ -1,25 +1,1007 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2685.4">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07111f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="猫咪声波">
+  <meta name="description" content="用高级 App 质感的声音场景，吸引、召唤和安抚猫咪。">
+  <title>猫咪声波</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icons/icon-192.svg" type="image/svg+xml">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          },
+          boxShadow: {
+            glow: '0 20px 60px rgba(56, 189, 248, 0.15)',
+            card: '0 24px 80px rgba(2, 6, 23, 0.55)',
+            button: '0 18px 40px rgba(15, 23, 42, 0.38)'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-1: #020617;
+      --bg-2: #0f172a;
+      --bg-3: #111827;
+      --line: rgba(255, 255, 255, 0.12);
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text-soft: rgba(226, 232, 240, 0.72);
+      --text-faint: rgba(191, 219, 254, 0.45);
+      --accent: rgba(103, 232, 249, 0.35);
+      --accent-strong: rgba(125, 211, 252, 0.8);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      background:
+        radial-gradient(circle at top, rgba(56, 189, 248, 0.20), transparent 34%),
+        radial-gradient(circle at 85% 20%, rgba(129, 140, 248, 0.18), transparent 28%),
+        radial-gradient(circle at 20% 100%, rgba(45, 212, 191, 0.14), transparent 30%),
+        linear-gradient(180deg, var(--bg-2) 0%, var(--bg-1) 48%, #01040b 100%);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: auto;
+      border-radius: 999px;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::before {
+      width: 16rem;
+      height: 16rem;
+      top: 10%;
+      left: -4rem;
+      background: rgba(59, 130, 246, 0.22);
+    }
+
+    body::after {
+      width: 20rem;
+      height: 20rem;
+      right: -5rem;
+      bottom: 12%;
+      background: rgba(34, 197, 94, 0.14);
+    }
+
+    .glass-card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(26px);
+      -webkit-backdrop-filter: blur(26px);
+    }
+
+    .sound-button {
+      position: relative;
+      overflow: hidden;
+      transform: translateZ(0);
+      transition:
+        transform 180ms ease,
+        border-color 220ms ease,
+        background-color 220ms ease,
+        box-shadow 220ms ease;
+    }
+
+    .sound-button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 42%, rgba(255, 255, 255, 0.08));
+      opacity: 0.65;
+      pointer-events: none;
+    }
+
+    .sound-button::after {
+      content: "";
+      position: absolute;
+      inset: auto auto -28% 50%;
+      width: 12rem;
+      height: 12rem;
+      transform: translateX(-50%);
+      background: radial-gradient(circle, rgba(125, 211, 252, 0.20), transparent 58%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 220ms ease;
+    }
+
+    .sound-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .sound-button:active {
+      transform: scale(0.98);
+    }
+
+    .sound-button.is-active {
+      border-color: rgba(125, 211, 252, 0.46);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(30, 41, 59, 0.30));
+      box-shadow:
+        0 22px 54px rgba(14, 165, 233, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    .sound-button.is-active::after {
+      opacity: 1;
+    }
+
+    .status-dot {
+      box-shadow: 0 0 0 0 rgba(103, 232, 249, 0.55);
+      animation: pulse 2.1s infinite;
+    }
+
+    .orb {
+      animation: floaty 6.8s ease-in-out infinite;
+    }
+
+    .orb-delayed {
+      animation-delay: -2.2s;
+    }
+
+    @keyframes floaty {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      50% { transform: translate3d(0, -12px, 0); }
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(103, 232, 249, 0.38); }
+      70% { box-shadow: 0 0 0 14px rgba(103, 232, 249, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(103, 232, 249, 0); }
+    }
   </style>
 </head>
-<body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="utf-8" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;My Website&lt;/title&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;h1&gt;Hello GitHub Pages 🚀&lt;/h1&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+<body class="font-sans text-slate-50 antialiased">
+  <main class="relative z-10 flex min-h-screen min-h-dvh items-center justify-center px-4 py-8" style="padding-top: calc(var(--safe-top) + 1.5rem); padding-bottom: calc(var(--safe-bottom) + 1.5rem);">
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="orb absolute left-[8%] top-[16%] h-28 w-28 rounded-full bg-cyan-300/10 blur-3xl"></div>
+      <div class="orb orb-delayed absolute bottom-[18%] right-[8%] h-32 w-32 rounded-full bg-sky-400/10 blur-3xl"></div>
+    </div>
+
+    <section class="glass-card relative w-full max-w-md rounded-[2rem] p-5 shadow-card sm:p-6">
+      <div class="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
+
+      <header class="mb-6">
+        <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-medium tracking-[0.24em] text-cyan-100/80 uppercase shadow-glow">
+          <span class="status-dot h-2 w-2 rounded-full bg-cyan-300"></span>
+          PWA Sound Studio
+        </div>
+
+        <div class="space-y-2">
+          <h1 class="text-[2rem] font-extrabold leading-tight tracking-[-0.04em] text-white sm:text-[2.3rem]">
+            猫咪声波
+          </h1>
+          <p class="max-w-xs text-sm leading-6 text-slate-300/80">
+            轻触启动一段声音场景，吸引、召唤或安抚你的猫咪。
+          </p>
+        </div>
+      </header>
+
+      <div class="grid gap-3">
+        <button
+          type="button"
+          class="sound-button group w-full rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-4 text-left shadow-button"
+          data-sound="finder"
+        >
+          <div class="relative z-10 flex items-center gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-cyan-100 ring-1 ring-white/10">
+              <svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M11.47 3.84a.75.75 0 0 1 1.06 0l8.25 8.25a.75.75 0 1 1-1.06 1.06l-7.72-7.72-7.72 7.72a.75.75 0 0 1-1.06-1.06l8.25-8.25Z"></path>
+                <path d="M8.25 14.25a.75.75 0 0 1 .75.75v3a1.5 1.5 0 0 0 1.5 1.5h3a1.5 1.5 0 0 0 1.5-1.5v-3a.75.75 0 0 1 1.5 0v3A3 3 0 0 1 13.5 21h-3A3 3 0 0 1 7.5 18v-3a.75.75 0 0 1 .75-.75Z"></path>
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-lg font-semibold tracking-[-0.02em] text-white">🐭 找猫神器</h2>
+                <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-cyan-100/80">高频捕捉</span>
+              </div>
+              <p class="mt-1 text-sm leading-6 text-slate-300/70">短促高频与节奏变化，适合引起注意。</p>
+            </div>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          class="sound-button group w-full rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-4 text-left shadow-button"
+          data-sound="caller"
+        >
+          <div class="relative z-10 flex items-center gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-sky-100 ring-1 ring-white/10">
+              <svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 3a.75.75 0 0 1 .75.75v8.69l2.72-2.72a.75.75 0 1 1 1.06 1.06l-4 4a.75.75 0 0 1-1.06 0l-4-4a.75.75 0 0 1 1.06-1.06l2.72 2.72V3.75A.75.75 0 0 1 12 3Z"></path>
+                <path d="M4.5 15.75A2.25 2.25 0 0 1 6.75 13.5h10.5a2.25 2.25 0 0 1 2.25 2.25v2.5A2.75 2.75 0 0 1 16.75 21H7.25A2.75 2.75 0 0 1 4.5 18.25v-2.5Z"></path>
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-lg font-semibold tracking-[-0.02em] text-white">🐱 召唤猫咪</h2>
+                <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-sky-100/80">柔和召回</span>
+              </div>
+              <p class="mt-1 text-sm leading-6 text-slate-300/70">更像轻柔呼唤的波形层次，适合主动靠近。</p>
+            </div>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          class="sound-button group w-full rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-4 text-left shadow-button"
+          data-sound="purr"
+        >
+          <div class="relative z-10 flex items-center gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-emerald-100 ring-1 ring-white/10">
+              <svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 3.75a.75.75 0 0 1 .75.75v6.19l1.72-1.72a.75.75 0 0 1 1.06 1.06l-3 3a.75.75 0 0 1-1.06 0l-3-3a.75.75 0 1 1 1.06-1.06l1.72 1.72V4.5a.75.75 0 0 1 .75-.75Z"></path>
+                <path d="M5.25 14.25a.75.75 0 0 1 .75.75c0 3 2.1 5.25 6 5.25s6-2.25 6-5.25a.75.75 0 0 1 1.5 0c0 3.95-2.98 6.75-7.5 6.75s-7.5-2.8-7.5-6.75a.75.75 0 0 1 .75-.75Z"></path>
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-lg font-semibold tracking-[-0.02em] text-white">😴 安抚呼噜</h2>
+                <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-emerald-100/80">低频平静</span>
+              </div>
+              <p class="mt-1 text-sm leading-6 text-slate-300/70">稳定温和的低频纹理，营造更松弛的氛围。</p>
+            </div>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          class="sound-button group w-full rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-4 text-left shadow-button"
+          data-sound="bird"
+        >
+          <div class="relative z-10 flex items-center gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-amber-100 ring-1 ring-white/10">
+              <svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M11.25 4.5a.75.75 0 0 1 .75-.75c3.728 0 6.75 3.022 6.75 6.75 0 1.426-.442 2.75-1.197 3.842a.75.75 0 1 1-1.233-.854 5.221 5.221 0 0 0 .93-2.988 5.25 5.25 0 0 0-5.25-5.25.75.75 0 0 1-.75-.75Z"></path>
+                <path d="M12 7.5a.75.75 0 0 1 .75-.75 3.75 3.75 0 0 1 3.75 3.75.75.75 0 0 1-1.5 0 2.25 2.25 0 0 0-2.25-2.25A.75.75 0 0 1 12 7.5Z"></path>
+                <path d="M4.995 12.45c-.75 1.04-1.245 2.314-1.245 3.675C3.75 19.921 6.829 23 10.625 23h2.25c3.796 0 6.875-3.079 6.875-6.875 0-1.611-.555-3.091-1.484-4.261-.233-.294-.679-.354-.992-.139l-2.485 1.714a3.75 3.75 0 0 1-2.13.661h-1.323a3.75 3.75 0 0 1-2.057-.614L6.04 11.827a.75.75 0 0 0-1.045.623Z"></path>
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-lg font-semibold tracking-[-0.02em] text-white">🐦 鸟叫诱导</h2>
+                <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-amber-100/80">灵动短鸣</span>
+              </div>
+              <p class="mt-1 text-sm leading-6 text-slate-300/70">仿鸟鸣的跳跃短音，适合激发追踪兴趣。</p>
+            </div>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          class="sound-button group w-full rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-4 text-left shadow-button"
+          data-sound="treat"
+        >
+          <div class="relative z-10 flex items-center gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-fuchsia-100 ring-1 ring-white/10">
+              <svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M7.5 5.25A2.25 2.25 0 0 1 9.75 3h4.5a2.25 2.25 0 0 1 2.25 2.25V7.5a2.25 2.25 0 0 1-2.25 2.25h-4.5A2.25 2.25 0 0 1 7.5 7.5V5.25Z"></path>
+                <path d="M4.5 11.25A2.25 2.25 0 0 1 6.75 9h10.5a2.25 2.25 0 0 1 2.25 2.25v6A3.75 3.75 0 0 1 15.75 21h-7.5A3.75 3.75 0 0 1 4.5 17.25v-6Z"></path>
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-lg font-semibold tracking-[-0.02em] text-white">🍽 零食摇晃</h2>
+                <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-fuchsia-100/80">清脆颗粒</span>
+              </div>
+              <p class="mt-1 text-sm leading-6 text-slate-300/70">模拟零食盒轻晃的清脆颗粒感，更容易形成联想。</p>
+            </div>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          class="sound-button group w-full rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-4 text-left shadow-button"
+          data-sound="nap"
+        >
+          <div class="relative z-10 flex items-center gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-violet-100 ring-1 ring-white/10">
+              <svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.25a.75.75 0 0 1 .75.75v1.098a7.251 7.251 0 0 1 6.152 6.152H20a.75.75 0 0 1 0 1.5h-1.098a7.251 7.251 0 0 1-6.152 6.152V19a.75.75 0 0 1-1.5 0v-1.098a7.251 7.251 0 0 1-6.152-6.152H4a.75.75 0 0 1 0-1.5h1.098a7.251 7.251 0 0 1 6.152-6.152V3a.75.75 0 0 1 .75-.75Z"></path>
+                <path d="M12 7.5a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5Z"></path>
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-lg font-semibold tracking-[-0.02em] text-white">🌙 午睡白噪</h2>
+                <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-violet-100/80">柔雾包裹</span>
+              </div>
+              <p class="mt-1 text-sm leading-6 text-slate-300/70">更轻的白噪和低频漂浮层，适合安静陪伴。</p>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <footer class="mt-5 flex items-center justify-between gap-3 rounded-[1.35rem] border border-white/10 bg-black/15 px-4 py-3">
+        <div>
+          <p id="statusLabel" class="text-sm font-medium text-white">未播放</p>
+          <p class="text-xs text-slate-400">再次点击当前按钮即可停止</p>
+        </div>
+        <button
+          id="stopButton"
+          type="button"
+          class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-white/10 active:scale-95"
+        >
+          停止
+        </button>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    const soundLabels = {
+      finder: '找猫神器',
+      caller: '召唤猫咪',
+      purr: '安抚呼噜',
+      bird: '鸟叫诱导',
+      treat: '零食摇晃',
+      nap: '午睡白噪'
+    };
+    const buttons = Array.from(document.querySelectorAll('[data-sound]'));
+    const statusLabel = document.getElementById('statusLabel');
+    const stopButton = document.getElementById('stopButton');
+
+    let audioContext = null;
+    let masterGain = null;
+    let activeScene = null;
+    let currentSound = null;
+
+    function setStatus(text) {
+      statusLabel.textContent = text;
+    }
+
+    function updateButtonState(activeName) {
+      buttons.forEach((button) => {
+        const isActive = button.dataset.sound === activeName;
+        button.classList.toggle('is-active', isActive);
+      });
+    }
+
+    function createNoiseBuffer(ctx) {
+      const buffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+      const channel = buffer.getChannelData(0);
+      for (let i = 0; i < channel.length; i += 1) {
+        channel[i] = (Math.random() * 2 - 1) * 0.8;
+      }
+      return buffer;
+    }
+
+    async function ensureAudio() {
+      if (!AudioContextClass) {
+        throw new Error('unsupported');
+      }
+
+      if (!audioContext) {
+        audioContext = new AudioContextClass();
+        masterGain = audioContext.createGain();
+        masterGain.gain.value = 0.0001;
+        masterGain.connect(audioContext.destination);
+      }
+
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
+      return audioContext;
+    }
+
+    function fadeMasterTo(value, duration = 0.28) {
+      const now = audioContext.currentTime;
+      masterGain.gain.cancelScheduledValues(now);
+      masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+      masterGain.gain.exponentialRampToValueAtTime(Math.max(value, 0.0001), now + duration);
+    }
+
+    function stopScene() {
+      if (!audioContext || !activeScene) {
+        currentSound = null;
+        updateButtonState(null);
+        setStatus('未播放');
+        return;
+      }
+
+      const now = audioContext.currentTime;
+      fadeMasterTo(0.0001, 0.18);
+
+      window.clearInterval(activeScene.intervalId);
+      activeScene.cleanups.forEach((cleanup) => {
+        try {
+          cleanup(now);
+        } catch (error) {
+          console.error(error);
+        }
+      });
+
+      activeScene = null;
+      currentSound = null;
+      updateButtonState(null);
+      setStatus('未播放');
+    }
+
+    function scheduleFinder(ctx, output) {
+      const cleanups = [];
+      const compressor = ctx.createDynamicsCompressor();
+      compressor.threshold.value = -24;
+      compressor.knee.value = 20;
+      compressor.ratio.value = 8;
+      compressor.attack.value = 0.003;
+      compressor.release.value = 0.18;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 3600;
+      filter.Q.value = 3.2;
+
+      const shimmer = ctx.createGain();
+      shimmer.gain.value = 0.24;
+
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = createNoiseBuffer(ctx);
+      noiseSource.loop = true;
+
+      const noiseFilter = ctx.createBiquadFilter();
+      noiseFilter.type = 'highpass';
+      noiseFilter.frequency.value = 4200;
+
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.value = 0.02;
+
+      filter.connect(compressor);
+      noiseSource.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(compressor);
+      compressor.connect(shimmer);
+      shimmer.connect(output);
+
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.35;
+      lfoGain.gain.value = 260;
+      lfo.connect(lfoGain);
+      lfoGain.connect(filter.frequency);
+
+      noiseSource.start();
+      lfo.start();
+
+      const chirp = (time, base) => {
+        const osc = ctx.createOscillator();
+        const amp = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(base * 0.9, time);
+        osc.frequency.exponentialRampToValueAtTime(base * 1.45, time + 0.045);
+        osc.frequency.exponentialRampToValueAtTime(base * 0.78, time + 0.14);
+        amp.gain.setValueAtTime(0.0001, time);
+        amp.gain.exponentialRampToValueAtTime(0.10, time + 0.012);
+        amp.gain.exponentialRampToValueAtTime(0.0001, time + 0.16);
+        osc.connect(amp);
+        amp.connect(filter);
+        osc.start(time);
+        osc.stop(time + 0.2);
+      };
+
+      const pulse = () => {
+        const now = ctx.currentTime;
+        const base = 2550 + Math.random() * 900;
+        chirp(now, base);
+        if (Math.random() > 0.42) {
+          chirp(now + 0.085, base * (1.05 + Math.random() * 0.18));
+        }
+        noiseGain.gain.cancelScheduledValues(now);
+        noiseGain.gain.setValueAtTime(0.018, now);
+        noiseGain.gain.linearRampToValueAtTime(0.055, now + 0.025);
+        noiseGain.gain.exponentialRampToValueAtTime(0.012, now + 0.16);
+      };
+
+      pulse();
+      const intervalId = window.setInterval(pulse, 720);
+
+      cleanups.push((time) => {
+        noiseGain.gain.cancelScheduledValues(time);
+        noiseGain.gain.setTargetAtTime(0.0001, time, 0.06);
+        shimmer.gain.cancelScheduledValues(time);
+        shimmer.gain.setTargetAtTime(0.0001, time, 0.08);
+        noiseSource.stop(time + 0.25);
+        lfo.stop(time + 0.25);
+      });
+
+      return { intervalId, cleanups };
+    }
+
+    function scheduleCaller(ctx, output) {
+      const cleanups = [];
+      const toneGain = ctx.createGain();
+      toneGain.gain.value = 0.18;
+      toneGain.connect(output);
+
+      const carrierA = ctx.createOscillator();
+      const carrierB = ctx.createOscillator();
+      const carrierC = ctx.createOscillator();
+      const wobble = ctx.createOscillator();
+      const wobbleDepth = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      filter.type = 'lowpass';
+      filter.frequency.value = 1800;
+      filter.Q.value = 0.5;
+
+      carrierA.type = 'sine';
+      carrierB.type = 'triangle';
+      carrierC.type = 'sine';
+      carrierA.frequency.value = 620;
+      carrierB.frequency.value = 930;
+      carrierC.frequency.value = 1240;
+
+      wobble.type = 'sine';
+      wobble.frequency.value = 0.22;
+      wobbleDepth.gain.value = 22;
+
+      wobble.connect(wobbleDepth);
+      wobbleDepth.connect(carrierA.frequency);
+      wobbleDepth.connect(carrierB.frequency);
+
+      const mixA = ctx.createGain();
+      const mixB = ctx.createGain();
+      const mixC = ctx.createGain();
+      mixA.gain.value = 0.9;
+      mixB.gain.value = 0.24;
+      mixC.gain.value = 0.14;
+
+      carrierA.connect(mixA);
+      carrierB.connect(mixB);
+      carrierC.connect(mixC);
+      mixA.connect(filter);
+      mixB.connect(filter);
+      mixC.connect(filter);
+      filter.connect(toneGain);
+
+      const chirp = (startTime, duration, target) => {
+        toneGain.gain.cancelScheduledValues(startTime);
+        toneGain.gain.setValueAtTime(0.0001, startTime);
+        toneGain.gain.exponentialRampToValueAtTime(target, startTime + 0.05);
+        toneGain.gain.exponentialRampToValueAtTime(target * 0.6, startTime + duration * 0.55);
+        toneGain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+        carrierA.frequency.cancelScheduledValues(startTime);
+        carrierB.frequency.cancelScheduledValues(startTime);
+        carrierC.frequency.cancelScheduledValues(startTime);
+
+        const base = 540 + Math.random() * 120;
+        carrierA.frequency.setValueAtTime(base, startTime);
+        carrierA.frequency.exponentialRampToValueAtTime(base * 1.32, startTime + duration * 0.42);
+        carrierA.frequency.exponentialRampToValueAtTime(base * 1.08, startTime + duration);
+
+        carrierB.frequency.setValueAtTime(base * 1.46, startTime);
+        carrierB.frequency.exponentialRampToValueAtTime(base * 1.8, startTime + duration * 0.5);
+
+        carrierC.frequency.setValueAtTime(base * 1.98, startTime);
+        carrierC.frequency.exponentialRampToValueAtTime(base * 2.18, startTime + duration * 0.45);
+      };
+
+      const phrase = () => {
+        const now = ctx.currentTime;
+        chirp(now, 0.55, 0.14);
+        chirp(now + 0.68, 0.64, 0.17);
+      };
+
+      carrierA.start();
+      carrierB.start();
+      carrierC.start();
+      wobble.start();
+      phrase();
+      const intervalId = window.setInterval(phrase, 2600);
+
+      cleanups.push((time) => {
+        toneGain.gain.cancelScheduledValues(time);
+        toneGain.gain.setTargetAtTime(0.0001, time, 0.09);
+        carrierA.stop(time + 0.3);
+        carrierB.stop(time + 0.3);
+        carrierC.stop(time + 0.3);
+        wobble.stop(time + 0.3);
+      });
+
+      return { intervalId, cleanups };
+    }
+
+    function schedulePurr(ctx, output) {
+      const cleanups = [];
+      const rumbleGain = ctx.createGain();
+      rumbleGain.gain.value = 0.18;
+
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = createNoiseBuffer(ctx);
+      noiseSource.loop = true;
+
+      const noiseFilter = ctx.createBiquadFilter();
+      noiseFilter.type = 'lowpass';
+      noiseFilter.frequency.value = 220;
+      noiseFilter.Q.value = 0.8;
+
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.value = 0.05;
+
+      const oscA = ctx.createOscillator();
+      const oscB = ctx.createOscillator();
+      const oscC = ctx.createOscillator();
+      oscA.type = 'sine';
+      oscB.type = 'triangle';
+      oscC.type = 'sine';
+      oscA.frequency.value = 28;
+      oscB.frequency.value = 56;
+      oscC.frequency.value = 84;
+
+      const aGain = ctx.createGain();
+      const bGain = ctx.createGain();
+      const cGain = ctx.createGain();
+      aGain.gain.value = 0.75;
+      bGain.gain.value = 0.18;
+      cGain.gain.value = 0.08;
+
+      const motion = ctx.createOscillator();
+      const motionDepth = ctx.createGain();
+      motion.type = 'sine';
+      motion.frequency.value = 0.9;
+      motionDepth.gain.value = 0.04;
+
+      motion.connect(motionDepth);
+      motionDepth.connect(rumbleGain.gain);
+
+      const band = ctx.createBiquadFilter();
+      band.type = 'lowpass';
+      band.frequency.value = 170;
+      band.Q.value = 1.1;
+
+      noiseSource.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(band);
+
+      oscA.connect(aGain);
+      oscB.connect(bGain);
+      oscC.connect(cGain);
+      aGain.connect(band);
+      bGain.connect(band);
+      cGain.connect(band);
+      band.connect(rumbleGain);
+      rumbleGain.connect(output);
+
+      oscA.start();
+      oscB.start();
+      oscC.start();
+      motion.start();
+      noiseSource.start();
+
+      const breathe = () => {
+        const now = ctx.currentTime;
+        const strength = 0.16 + Math.random() * 0.04;
+        rumbleGain.gain.cancelScheduledValues(now);
+        rumbleGain.gain.setValueAtTime(strength, now);
+        rumbleGain.gain.linearRampToValueAtTime(strength + 0.05, now + 0.6);
+        rumbleGain.gain.linearRampToValueAtTime(strength - 0.02, now + 1.4);
+      };
+
+      breathe();
+      const intervalId = window.setInterval(breathe, 1500);
+
+      cleanups.push((time) => {
+        rumbleGain.gain.cancelScheduledValues(time);
+        rumbleGain.gain.setTargetAtTime(0.0001, time, 0.12);
+        oscA.stop(time + 0.4);
+        oscB.stop(time + 0.4);
+        oscC.stop(time + 0.4);
+        motion.stop(time + 0.4);
+        noiseSource.stop(time + 0.4);
+      });
+
+      return { intervalId, cleanups };
+    }
+
+    function scheduleBird(ctx, output) {
+      const cleanups = [];
+      const master = ctx.createGain();
+      master.gain.value = 0.2;
+      master.connect(output);
+
+      const airSource = ctx.createBufferSource();
+      airSource.buffer = createNoiseBuffer(ctx);
+      airSource.loop = true;
+
+      const airFilter = ctx.createBiquadFilter();
+      airFilter.type = 'bandpass';
+      airFilter.frequency.value = 5400;
+      airFilter.Q.value = 2.4;
+
+      const airGain = ctx.createGain();
+      airGain.gain.value = 0.012;
+
+      airSource.connect(airFilter);
+      airFilter.connect(airGain);
+      airGain.connect(master);
+
+      const chirp = (time, base, duration, volume) => {
+        const osc = ctx.createOscillator();
+        const amp = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(base * 0.8, time);
+        osc.frequency.exponentialRampToValueAtTime(base * 1.9, time + duration * 0.35);
+        osc.frequency.exponentialRampToValueAtTime(base * 1.2, time + duration);
+        amp.gain.setValueAtTime(0.0001, time);
+        amp.gain.exponentialRampToValueAtTime(volume, time + 0.015);
+        amp.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+        osc.connect(amp);
+        amp.connect(master);
+        osc.start(time);
+        osc.stop(time + duration + 0.05);
+      };
+
+      const phrase = () => {
+        const now = ctx.currentTime;
+        const base = 1800 + Math.random() * 1200;
+        chirp(now, base, 0.12, 0.08);
+        chirp(now + 0.14, base * 1.2, 0.09, 0.06);
+        if (Math.random() > 0.48) {
+          chirp(now + 0.3, base * 0.92, 0.15, 0.05);
+        }
+      };
+
+      airSource.start();
+      phrase();
+      const intervalId = window.setInterval(phrase, 980);
+
+      cleanups.push((time) => {
+        master.gain.cancelScheduledValues(time);
+        master.gain.setTargetAtTime(0.0001, time, 0.08);
+        airSource.stop(time + 0.25);
+      });
+
+      return { intervalId, cleanups };
+    }
+
+    function scheduleTreat(ctx, output) {
+      const cleanups = [];
+      const mix = ctx.createGain();
+      mix.gain.value = 0.22;
+      mix.connect(output);
+
+      const sparkleSource = ctx.createBufferSource();
+      sparkleSource.buffer = createNoiseBuffer(ctx);
+      sparkleSource.loop = true;
+
+      const sparkleFilter = ctx.createBiquadFilter();
+      sparkleFilter.type = 'highpass';
+      sparkleFilter.frequency.value = 2500;
+
+      const sparkleGain = ctx.createGain();
+      sparkleGain.gain.value = 0.008;
+
+      sparkleSource.connect(sparkleFilter);
+      sparkleFilter.connect(sparkleGain);
+      sparkleGain.connect(mix);
+
+      const click = (time, base) => {
+        const osc = ctx.createOscillator();
+        const amp = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(base, time);
+        osc.frequency.exponentialRampToValueAtTime(base * 1.08, time + 0.03);
+
+        filter.type = 'bandpass';
+        filter.frequency.value = base * 1.4;
+        filter.Q.value = 5;
+
+        amp.gain.setValueAtTime(0.0001, time);
+        amp.gain.exponentialRampToValueAtTime(0.055, time + 0.003);
+        amp.gain.exponentialRampToValueAtTime(0.0001, time + 0.045);
+
+        osc.connect(filter);
+        filter.connect(amp);
+        amp.connect(mix);
+        osc.start(time);
+        osc.stop(time + 0.06);
+      };
+
+      const shake = () => {
+        const now = ctx.currentTime;
+        const hits = 4 + Math.floor(Math.random() * 3);
+        for (let index = 0; index < hits; index += 1) {
+          click(now + index * (0.045 + Math.random() * 0.025), 1100 + Math.random() * 1600);
+        }
+        sparkleGain.gain.cancelScheduledValues(now);
+        sparkleGain.gain.setValueAtTime(0.01, now);
+        sparkleGain.gain.linearRampToValueAtTime(0.03, now + 0.06);
+        sparkleGain.gain.exponentialRampToValueAtTime(0.006, now + 0.32);
+      };
+
+      sparkleSource.start();
+      shake();
+      const intervalId = window.setInterval(shake, 1450);
+
+      cleanups.push((time) => {
+        mix.gain.cancelScheduledValues(time);
+        mix.gain.setTargetAtTime(0.0001, time, 0.08);
+        sparkleSource.stop(time + 0.25);
+      });
+
+      return { intervalId, cleanups };
+    }
+
+    function scheduleNap(ctx, output) {
+      const cleanups = [];
+      const bed = ctx.createGain();
+      bed.gain.value = 0.18;
+      bed.connect(output);
+
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = createNoiseBuffer(ctx);
+      noiseSource.loop = true;
+
+      const lowpass = ctx.createBiquadFilter();
+      lowpass.type = 'lowpass';
+      lowpass.frequency.value = 900;
+      lowpass.Q.value = 0.25;
+
+      const highpass = ctx.createBiquadFilter();
+      highpass.type = 'highpass';
+      highpass.frequency.value = 80;
+
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.value = 0.048;
+
+      const warm = ctx.createOscillator();
+      const warmGain = ctx.createGain();
+      warm.type = 'sine';
+      warm.frequency.value = 142;
+      warmGain.gain.value = 0.028;
+
+      const drift = ctx.createOscillator();
+      const driftGain = ctx.createGain();
+      drift.type = 'sine';
+      drift.frequency.value = 0.12;
+      driftGain.gain.value = 40;
+
+      drift.connect(driftGain);
+      driftGain.connect(lowpass.frequency);
+
+      noiseSource.connect(lowpass);
+      lowpass.connect(highpass);
+      highpass.connect(noiseGain);
+      noiseGain.connect(bed);
+
+      warm.connect(warmGain);
+      warmGain.connect(bed);
+
+      noiseSource.start();
+      warm.start();
+      drift.start();
+
+      const sway = () => {
+        const now = ctx.currentTime;
+        bed.gain.cancelScheduledValues(now);
+        bed.gain.setValueAtTime(0.16, now);
+        bed.gain.linearRampToValueAtTime(0.21, now + 1.6);
+        bed.gain.linearRampToValueAtTime(0.15, now + 3.6);
+      };
+
+      sway();
+      const intervalId = window.setInterval(sway, 3600);
+
+      cleanups.push((time) => {
+        bed.gain.cancelScheduledValues(time);
+        bed.gain.setTargetAtTime(0.0001, time, 0.2);
+        noiseSource.stop(time + 0.5);
+        warm.stop(time + 0.5);
+        drift.stop(time + 0.5);
+      });
+
+      return { intervalId, cleanups };
+    }
+
+    async function playSound(soundName) {
+      try {
+        await ensureAudio();
+      } catch (error) {
+        setStatus('当前浏览器不支持播放');
+        return;
+      }
+
+      if (currentSound === soundName) {
+        stopScene();
+        return;
+      }
+
+      stopScene();
+      currentSound = soundName;
+      updateButtonState(soundName);
+
+      const sceneBus = audioContext.createGain();
+      sceneBus.gain.value = 1;
+      sceneBus.connect(masterGain);
+
+      const sceneMap = {
+        finder: {
+          start: scheduleFinder,
+          gain: 0.52
+        },
+        caller: {
+          start: scheduleCaller,
+          gain: 0.5
+        },
+        purr: {
+          start: schedulePurr,
+          gain: 0.45
+        },
+        bird: {
+          start: scheduleBird,
+          gain: 0.46
+        },
+        treat: {
+          start: scheduleTreat,
+          gain: 0.48
+        },
+        nap: {
+          start: scheduleNap,
+          gain: 0.38
+        }
+      };
+
+      const scene = sceneMap[soundName];
+      if (!scene) {
+        setStatus('声音加载失败');
+        return;
+      }
+
+      activeScene = scene.start(audioContext, sceneBus);
+      setStatus(`正在播放 ${soundLabels[soundName]}`);
+      fadeMasterTo(scene.gain, 0.35);
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        playSound(button.dataset.sound);
+      });
+    });
+
+    stopButton.addEventListener('click', stopScene);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopScene();
+      }
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((error) => {
+          console.error('Service worker registration failed:', error);
+        });
+      });
+    }
+  </script>
 </body>
 </html>
