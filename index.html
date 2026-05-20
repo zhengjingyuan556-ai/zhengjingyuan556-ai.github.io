@@ -52,6 +52,10 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    button {
+      touch-action: manipulation;
+    }
+
     body {
       min-height: 100vh;
       min-height: 100dvh;
@@ -334,6 +338,28 @@
             </div>
           </div>
         </button>
+
+        <button
+          type="button"
+          class="sound-button group w-full rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-4 text-left shadow-button"
+          data-sound="bell"
+        >
+          <div class="relative z-10 flex items-center gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-rose-100 ring-1 ring-white/10">
+              <svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 3a4.5 4.5 0 0 0-4.5 4.5v1.03c0 1.22-.43 2.4-1.216 3.33l-.936 1.103A1.5 1.5 0 0 0 6.492 15.5h11.016a1.5 1.5 0 0 0 1.144-2.536l-.936-1.102A5.176 5.176 0 0 1 16.5 8.53V7.5A4.5 4.5 0 0 0 12 3Z"></path>
+                <path d="M9.75 18a2.25 2.25 0 1 0 4.5 0h-4.5Z"></path>
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="text-lg font-semibold tracking-[-0.02em] text-white">🔔 逗猫棒铃铃</h2>
+                <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-rose-100/80">清亮叮铃</span>
+              </div>
+              <p class="mt-1 text-sm leading-6 text-slate-300/70">模拟逗猫棒小铃铛的轻快金属颤音，更适合逗玩和吸引注意。</p>
+            </div>
+          </div>
+        </button>
       </div>
 
       <footer class="mt-5 flex items-center justify-between gap-3 rounded-[1.35rem] border border-white/10 bg-black/15 px-4 py-3">
@@ -360,7 +386,8 @@
       purr: '安抚呼噜',
       bird: '鸟叫诱导',
       treat: '零食摇晃',
-      nap: '午睡白噪'
+      nap: '午睡白噪',
+      bell: '逗猫棒铃铃'
     };
     const buttons = Array.from(document.querySelectorAll('[data-sound]'));
     const statusLabel = document.getElementById('statusLabel');
@@ -370,6 +397,7 @@
     let masterGain = null;
     let activeScene = null;
     let currentSound = null;
+    let audioUnlocked = false;
 
     function setStatus(text) {
       statusLabel.textContent = text;
@@ -408,6 +436,27 @@
       }
 
       return audioContext;
+    }
+
+    async function primeAudio() {
+      await ensureAudio();
+
+      if (audioUnlocked) {
+        return;
+      }
+
+      const buffer = audioContext.createBuffer(1, 1, audioContext.sampleRate);
+      const source = audioContext.createBufferSource();
+      const gain = audioContext.createGain();
+
+      gain.gain.value = 0.0001;
+      source.buffer = buffer;
+      source.connect(gain);
+      gain.connect(masterGain);
+      source.start(0);
+      source.stop(audioContext.currentTime + 0.01);
+
+      audioUnlocked = true;
     }
 
     function fadeMasterTo(value, duration = 0.28) {
@@ -458,7 +507,7 @@
       filter.Q.value = 3.2;
 
       const shimmer = ctx.createGain();
-      shimmer.gain.value = 0.24;
+      shimmer.gain.value = 0.31;
 
       const noiseSource = ctx.createBufferSource();
       noiseSource.buffer = createNoiseBuffer(ctx);
@@ -469,7 +518,7 @@
       noiseFilter.frequency.value = 4200;
 
       const noiseGain = ctx.createGain();
-      noiseGain.gain.value = 0.02;
+      noiseGain.gain.value = 0.028;
 
       filter.connect(compressor);
       noiseSource.connect(noiseFilter);
@@ -497,7 +546,7 @@
         osc.frequency.exponentialRampToValueAtTime(base * 1.45, time + 0.045);
         osc.frequency.exponentialRampToValueAtTime(base * 0.78, time + 0.14);
         amp.gain.setValueAtTime(0.0001, time);
-        amp.gain.exponentialRampToValueAtTime(0.10, time + 0.012);
+        amp.gain.exponentialRampToValueAtTime(0.14, time + 0.012);
         amp.gain.exponentialRampToValueAtTime(0.0001, time + 0.16);
         osc.connect(amp);
         amp.connect(filter);
@@ -513,9 +562,9 @@
           chirp(now + 0.085, base * (1.05 + Math.random() * 0.18));
         }
         noiseGain.gain.cancelScheduledValues(now);
-        noiseGain.gain.setValueAtTime(0.018, now);
-        noiseGain.gain.linearRampToValueAtTime(0.055, now + 0.025);
-        noiseGain.gain.exponentialRampToValueAtTime(0.012, now + 0.16);
+        noiseGain.gain.setValueAtTime(0.026, now);
+        noiseGain.gain.linearRampToValueAtTime(0.075, now + 0.025);
+        noiseGain.gain.exponentialRampToValueAtTime(0.015, now + 0.16);
       };
 
       pulse();
@@ -536,7 +585,7 @@
     function scheduleCaller(ctx, output) {
       const cleanups = [];
       const toneGain = ctx.createGain();
-      toneGain.gain.value = 0.18;
+      toneGain.gain.value = 0.22;
       toneGain.connect(output);
 
       const carrierA = ctx.createOscillator();
@@ -605,8 +654,8 @@
 
       const phrase = () => {
         const now = ctx.currentTime;
-        chirp(now, 0.55, 0.14);
-        chirp(now + 0.68, 0.64, 0.17);
+        chirp(now, 0.55, 0.17);
+        chirp(now + 0.62, 0.64, 0.2);
       };
 
       carrierA.start();
@@ -723,7 +772,7 @@
     function scheduleBird(ctx, output) {
       const cleanups = [];
       const master = ctx.createGain();
-      master.gain.value = 0.2;
+      master.gain.value = 0.26;
       master.connect(output);
 
       const airSource = ctx.createBufferSource();
@@ -761,10 +810,10 @@
       const phrase = () => {
         const now = ctx.currentTime;
         const base = 1800 + Math.random() * 1200;
-        chirp(now, base, 0.12, 0.08);
-        chirp(now + 0.14, base * 1.2, 0.09, 0.06);
+        chirp(now, base, 0.12, 0.11);
+        chirp(now + 0.14, base * 1.2, 0.09, 0.085);
         if (Math.random() > 0.48) {
-          chirp(now + 0.3, base * 0.92, 0.15, 0.05);
+          chirp(now + 0.3, base * 0.92, 0.15, 0.07);
         }
       };
 
@@ -922,9 +971,88 @@
       return { intervalId, cleanups };
     }
 
+    function scheduleBell(ctx, output) {
+      const cleanups = [];
+      const bus = ctx.createGain();
+      bus.gain.value = 0.26;
+      bus.connect(output);
+
+      const sparkleSource = ctx.createBufferSource();
+      sparkleSource.buffer = createNoiseBuffer(ctx);
+      sparkleSource.loop = true;
+
+      const sparkleFilter = ctx.createBiquadFilter();
+      sparkleFilter.type = 'highpass';
+      sparkleFilter.frequency.value = 4200;
+
+      const sparkleGain = ctx.createGain();
+      sparkleGain.gain.value = 0.004;
+
+      sparkleSource.connect(sparkleFilter);
+      sparkleFilter.connect(sparkleGain);
+      sparkleGain.connect(bus);
+
+      const ring = (time, frequency, brightness) => {
+        const oscA = ctx.createOscillator();
+        const oscB = ctx.createOscillator();
+        const amp = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        oscA.type = 'sine';
+        oscB.type = 'triangle';
+        oscA.frequency.setValueAtTime(frequency, time);
+        oscB.frequency.setValueAtTime(frequency * 2.02, time);
+
+        filter.type = 'bandpass';
+        filter.frequency.value = frequency * 1.7;
+        filter.Q.value = 6;
+
+        amp.gain.setValueAtTime(0.0001, time);
+        amp.gain.exponentialRampToValueAtTime(brightness, time + 0.004);
+        amp.gain.exponentialRampToValueAtTime(brightness * 0.45, time + 0.08);
+        amp.gain.exponentialRampToValueAtTime(0.0001, time + 0.42);
+
+        oscA.connect(filter);
+        oscB.connect(filter);
+        filter.connect(amp);
+        amp.connect(bus);
+
+        oscA.start(time);
+        oscB.start(time);
+        oscA.stop(time + 0.46);
+        oscB.stop(time + 0.46);
+      };
+
+      const burst = () => {
+        const now = ctx.currentTime;
+        ring(now, 1320 + Math.random() * 140, 0.16);
+        ring(now + 0.09, 1760 + Math.random() * 220, 0.1);
+        if (Math.random() > 0.38) {
+          ring(now + 0.22, 1480 + Math.random() * 180, 0.08);
+        }
+
+        sparkleGain.gain.cancelScheduledValues(now);
+        sparkleGain.gain.setValueAtTime(0.004, now);
+        sparkleGain.gain.linearRampToValueAtTime(0.018, now + 0.03);
+        sparkleGain.gain.exponentialRampToValueAtTime(0.002, now + 0.34);
+      };
+
+      sparkleSource.start();
+      burst();
+      const intervalId = window.setInterval(burst, 1180);
+
+      cleanups.push((time) => {
+        bus.gain.cancelScheduledValues(time);
+        bus.gain.setTargetAtTime(0.0001, time, 0.08);
+        sparkleSource.stop(time + 0.3);
+      });
+
+      return { intervalId, cleanups };
+    }
+
     async function playSound(soundName) {
       try {
-        await ensureAudio();
+        await primeAudio();
       } catch (error) {
         setStatus('当前浏览器不支持播放');
         return;
@@ -967,6 +1095,10 @@
         nap: {
           start: scheduleNap,
           gain: 0.38
+        },
+        bell: {
+          start: scheduleBell,
+          gain: 0.58
         }
       };
 
@@ -982,10 +1114,22 @@
     }
 
     buttons.forEach((button) => {
+      button.addEventListener('pointerdown', () => {
+        primeAudio().catch(() => {
+          setStatus('请允许音频播放');
+        });
+      }, { passive: true });
+
       button.addEventListener('click', () => {
         playSound(button.dataset.sound);
       });
     });
+
+    stopButton.addEventListener('pointerdown', () => {
+      primeAudio().catch(() => {
+        setStatus('请允许音频播放');
+      });
+    }, { passive: true });
 
     stopButton.addEventListener('click', stopScene);
 
